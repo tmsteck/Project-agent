@@ -9,7 +9,7 @@ Built with React + Vite, stores data in Supabase, deploys to GitHub Pages.
 
 - **Frontend**: React 18 + Vite (no TypeScript, keep it simple)
 - **Storage**: Supabase (Postgres) — your data lives in a private table
-- **AI Agent**: Anthropic API (Claude Sonnet), called directly from the browser
+- **AI Agent**: Anthropic API (Claude Sonnet), browser mode is disabled by default
 - **Hosting**: GitHub Pages via GitHub Actions
 
 ---
@@ -27,11 +27,17 @@ create table store (
   value jsonb not null
 );
 
--- Allow read/write without login (it's your personal app)
 alter table store enable row level security;
 
-create policy "allow all" on store
-  for all using (true) with check (true);
+-- Minimal hardening: only allow the one app key we actually use.
+create policy "read projects only" on store
+  for select using (key = 'projects');
+
+create policy "insert projects only" on store
+  for insert with check (key = 'projects');
+
+create policy "update projects only" on store
+  for update using (key = 'projects') with check (key = 'projects');
 ```
 
 3. Go to **Settings → API** and copy:
@@ -63,13 +69,14 @@ git push -u origin main
 
 In your GitHub repo: **Settings → Secrets and variables → Actions → New repository secret**
 
-Add these three secrets:
+Add these secrets:
 
 | Secret name              | Value                        |
 |--------------------------|------------------------------|
 | `VITE_SUPABASE_URL`      | Your Supabase project URL    |
 | `VITE_SUPABASE_ANON_KEY` | Your Supabase anon key       |
-| `VITE_ANTHROPIC_API_KEY` | Your Anthropic API key       |
+| `VITE_ENABLE_INSECURE_BROWSER_AGENT` | `false` (recommended) or `true` (private/testing only) |
+| `VITE_ANTHROPIC_API_KEY` | Your Anthropic API key (only if browser agent mode is enabled) |
 
 ### 5. Enable GitHub Pages
 
@@ -107,7 +114,9 @@ npm install
 
 # Copy env template and fill in your values
 cp .env.example .env.local
-# Edit .env.local with your Supabase URL, anon key, and Anthropic key
+# Edit .env.local with your Supabase URL + anon key.
+# Keep browser agent disabled (`VITE_ENABLE_INSECURE_BROWSER_AGENT=false`) for public deployments.
+# Only set `VITE_ANTHROPIC_API_KEY` if you intentionally enable insecure browser mode.
 
 # Start dev server
 npm run dev
@@ -118,11 +127,14 @@ npm run dev
 ## Security notes
 
 - The Supabase **anon key** is safe to expose — it's designed to be public.
-  Row-level security controls what it can do (we gave it full access since
-  it's your personal app and no one else has the URL structure to guess).
-- The **Anthropic API key** will be bundled into the built JS. For a personal
-  site this is acceptable — the site isn't indexed, and you can rotate the key
-  easily. If you want it fully private, you'd need a small backend proxy.
+  Row-level security controls what it can do. The SQL above only allows access
+  to the `projects` key instead of full-table access.
+- Browser agent mode is now **disabled by default**. This avoids shipping your
+  Anthropic API key to every visitor.
+- If you set `VITE_ENABLE_INSECURE_BROWSER_AGENT=true`, your Anthropic API key
+  will be bundled into client JS and can be extracted by anyone. Only do this
+  for private/testing deployments.
+- For a public site, call Anthropic from a backend/edge proxy instead.
 - The GitHub Actions secrets are **never** in the repo — they're injected at
   build time only.
 
