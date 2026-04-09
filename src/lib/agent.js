@@ -1,4 +1,5 @@
 const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
+const ENABLE_INSECURE_BROWSER_AGENT = import.meta.env.VITE_ENABLE_INSECURE_BROWSER_AGENT === 'true'
 
 export const SYSTEM_PROMPT = `You are a research project management assistant for a physics PhD student. You help track projects, update todos, and flag quagmires.
 
@@ -32,6 +33,15 @@ IMPORTANT: Always respond with a JSON object in this exact shape:
 Only include keys that are relevant. mutations can be an empty array if no changes needed.`
 
 export async function callAgent(conversationHistory, projects) {
+  if (!ENABLE_INSECURE_BROWSER_AGENT) {
+    throw new Error(
+      'Agent is disabled for security. Use a backend proxy, or set VITE_ENABLE_INSECURE_BROWSER_AGENT=true only for private/testing deployments.'
+    )
+  }
+  if (!ANTHROPIC_API_KEY) {
+    throw new Error('Missing VITE_ANTHROPIC_API_KEY for browser agent mode.')
+  }
+
   const projectContext = JSON.stringify(projects, null, 2)
   const systemWithContext = SYSTEM_PROMPT + `\n\nCURRENT PROJECT DATA:\n${projectContext}`
 
