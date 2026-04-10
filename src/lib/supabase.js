@@ -3,13 +3,16 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
 
 // ─── Storage helpers ────────────────────────────────────────────────────────
 // We use a single "store" table with (key text PRIMARY KEY, value jsonb).
 // All data for this personal app lives under well-known keys.
 
 export async function dbGet(key) {
+  if (!supabase) return null
   const { data, error } = await supabase
     .from('store')
     .select('value')
@@ -20,6 +23,7 @@ export async function dbGet(key) {
 }
 
 export async function dbSet(key, value) {
+  if (!supabase) return
   const { error } = await supabase
     .from('store')
     .upsert({ key, value }, { onConflict: 'key' })
