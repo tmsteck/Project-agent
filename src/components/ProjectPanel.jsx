@@ -29,7 +29,7 @@ export default function ProjectPanel({ project, onUpdate }) {
   const done = project.todos.filter(t => t.done)
 
   return (
-    <div className="fade-up" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+    <div className="fade-up project-panel">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 16 }}>
         <h2 style={{

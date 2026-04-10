@@ -2,7 +2,7 @@ import { useState } from 'react'
 import StatusBadge from './StatusBadge.jsx'
 import { now, STATUS_META } from '../lib/utils.js'
 
-export default function Sidebar({ projects, selectedId, view, onSelect, onViewChange, onAdd, onDelete, onGlobalAgent }) {
+export default function Sidebar({ projects, selectedId, view, onSelect, onViewChange, onAdd, onDelete, onGlobalAgent, isOpen, onClose }) {
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
   const [summary, setSummary] = useState('')
@@ -14,7 +14,7 @@ export default function Sidebar({ projects, selectedId, view, onSelect, onViewCh
   }
 
   return (
-    <div style={{
+    <div className={`sidebar-drawer${isOpen ? ' open' : ''}`} style={{
       width: 248,
       background: '#0a1628',
       borderRight: '1px solid #1e293b',
@@ -22,12 +22,15 @@ export default function Sidebar({ projects, selectedId, view, onSelect, onViewCh
       flexDirection: 'column',
       flexShrink: 0,
     }}>
-      {/* Logo */}
-      <div style={{ padding: '20px 16px 14px', borderBottom: '1px solid #1e293b' }}>
-        <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#3b82f6', fontWeight: 700, textTransform: 'uppercase', marginBottom: 2 }}>
-          ⚛ Research OS
+      {/* Logo + mobile close button */}
+      <div style={{ padding: '20px 16px 14px', borderBottom: '1px solid #1e293b', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#3b82f6', fontWeight: 700, textTransform: 'uppercase', marginBottom: 2 }}>
+            ⚛ Research OS
+          </div>
+          <div style={{ fontSize: 10, color: '#334155' }}>PhD Project Tracker</div>
         </div>
-        <div style={{ fontSize: 10, color: '#334155' }}>PhD Project Tracker</div>
+        <button className="sidebar-close-btn" onClick={onClose} aria-label="Close menu">✕</button>
       </div>
 
       {/* Global agent */}
