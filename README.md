@@ -3,6 +3,8 @@
 A personal research project tracker with an AI agent for PhD students.
 Built with React + Vite, stores data in Supabase, deploys to GitHub Pages.
 
+The agent can now generate full project entries from semi-formal descriptions and can edit existing project/task text directly through structured mutations.
+
 ---
 
 ## Stack
@@ -121,6 +123,17 @@ cp .env.example .env.local
 # Start dev server
 npm run dev
 ```
+
+### Direct editing + flexible agent updates
+
+- In the **Tasks** view, you can directly:
+  - edit project name/summary text
+  - edit task text inline
+  - add activity log notes
+- In **All Projects Agent** mode, you can ask for semi-formal planning input to be turned into:
+  - new projects
+  - new tasks
+  - rewritten existing project/task text
 
 ---
 

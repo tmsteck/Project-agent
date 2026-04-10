@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import StatusBadge from './StatusBadge.jsx'
 import TodoItem from './TodoItem.jsx'
 import { now, fmtDate, STATUS_META } from '../lib/utils.js'
@@ -9,6 +9,12 @@ export default function ProjectPanel({ project, onUpdate }) {
   const [editingProjectText, setEditingProjectText] = useState(false)
   const [draftName, setDraftName] = useState(project.name)
   const [draftSummary, setDraftSummary] = useState(project.summary)
+
+  useEffect(() => {
+    setDraftName(project.name)
+    setDraftSummary(project.summary)
+    setEditingProjectText(false)
+  }, [project.id, project.name, project.summary])
 
   const addTodo = () => {
     if (!newTodo.trim()) return
