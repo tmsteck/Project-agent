@@ -9,11 +9,13 @@ export default function ProjectPanel({ project, onUpdate }) {
   const [editingProjectText, setEditingProjectText] = useState(false)
   const [draftName, setDraftName] = useState(project.name)
   const [draftSummary, setDraftSummary] = useState(project.summary)
+  const [projectTextError, setProjectTextError] = useState('')
 
   useEffect(() => {
     setDraftName(project.name)
     setDraftSummary(project.summary)
     setEditingProjectText(false)
+    setProjectTextError('')
   }, [project.id, project.name, project.summary])
 
   const addTodo = () => {
@@ -44,14 +46,19 @@ export default function ProjectPanel({ project, onUpdate }) {
   const saveProjectText = () => {
     const name = draftName.trim()
     const summary = draftSummary.trim()
-    if (!name) return
+    if (!name) {
+      setProjectTextError('Project name is required.')
+      return
+    }
     onUpdate({ ...project, name, summary: summary || DEFAULT_PROJECT_SUMMARY })
+    setProjectTextError('')
     setEditingProjectText(false)
   }
 
   const cancelProjectText = () => {
     setDraftName(project.name)
     setDraftSummary(project.summary)
+    setProjectTextError('')
     setEditingProjectText(false)
   }
 
@@ -168,6 +175,11 @@ export default function ProjectPanel({ project, onUpdate }) {
             </button>
           )}
         </div>
+        {editingProjectText && projectTextError && (
+          <div style={{ marginTop: 8, fontSize: 12, color: '#fca5a5' }}>
+            {projectTextError}
+          </div>
+        )}
       </div>
 
       {/* Open todos */}

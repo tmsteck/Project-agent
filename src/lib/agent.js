@@ -1,4 +1,4 @@
-import { DEFAULT_PROJECT_SUMMARY, makeId } from './utils.js'
+import { DEFAULT_PROJECT_SUMMARY, STATUS_META, makeId } from './utils.js'
 
 const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
 const ENABLE_INSECURE_BROWSER_AGENT = import.meta.env.VITE_ENABLE_INSECURE_BROWSER_AGENT === 'true'
@@ -103,7 +103,7 @@ export function applyMutations(projects, resultOrMutations) {
   if (!mutations?.length && !projectsToAdd?.length) return projects
   const now = new Date().toISOString()
 
-  const statusSet = new Set(['active', 'stalled', 'blocked', 'done'])
+  const statusSet = new Set(Object.keys(STATUS_META))
   const createdProjects = projectsToAdd
     .filter(x => x?.name?.trim())
     .map(x => {
