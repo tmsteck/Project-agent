@@ -126,6 +126,15 @@ npm run dev
 
 ## Security notes
 
+- **Password gate**: Set `VITE_APP_PASSWORD` in your GitHub Actions secrets (and
+  local `.env`) to enable a password prompt at startup. The session is remembered
+  for the current browser tab (via `sessionStorage`) so you won't be asked again
+  until you open a new tab or restart the browser. Leave the variable blank to
+  disable auth entirely (useful during local development).
+  > **Note**: because this is a Vite/React SPA, the password is baked into the
+  > built JS bundle. A determined person who downloads your GitHub Pages files
+  > can read it. For a personal-use app this is fine; don't reuse a sensitive
+  > password here.
 - The Supabase **anon key** is safe to expose — it's designed to be public.
   Row-level security controls what it can do. The SQL above only allows access
   to the `projects` key instead of full-table access.
