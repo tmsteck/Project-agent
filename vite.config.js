@@ -3,6 +3,6 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  // App is deployed at https://thomassteckmann.com/Project-agent/
-  base: '/Project-agent/',
+  // Use relative asset paths so deploys work at root or subpath.
+  base: './',
 })
