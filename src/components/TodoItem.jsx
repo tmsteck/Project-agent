@@ -1,4 +1,23 @@
-export default function TodoItem({ todo, onToggle, onDelete }) {
+import { useEffect, useState } from 'react'
+
+export default function TodoItem({ todo, onToggle, onDelete, onEdit }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(todo.text)
+
+  useEffect(() => {
+    setDraft(todo.text)
+  }, [todo.text])
+
+  const saveEdit = () => {
+    const text = draft.trim()
+    if (!text || text === todo.text) {
+      setDraft(todo.text)
+      return setEditing(false)
+    }
+    onEdit?.(text)
+    setEditing(false)
+  }
+
   return (
     <div
       style={{
@@ -32,18 +51,55 @@ export default function TodoItem({ todo, onToggle, onDelete }) {
         {todo.done ? '✓' : ''}
       </button>
 
-      <span
+      {editing ? (
+        <input
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') saveEdit()
+            if (e.key === 'Escape') { setDraft(todo.text); setEditing(false) }
+          }}
+          style={{
+            flex: 1,
+            background: '#0f172a',
+            border: '1px solid #334155',
+            borderRadius: 4,
+            color: '#cbd5e1',
+            fontSize: 13,
+            padding: '4px 8px',
+            outline: 'none',
+          }}
+          autoFocus
+        />
+      ) : (
+        <span
+          style={{
+            flex: 1,
+            fontSize: 13.5,
+            color: todo.done ? '#475569' : '#cbd5e1',
+            textDecoration: todo.done ? 'line-through' : 'none',
+            lineHeight: 1.5,
+          }}
+        >
+          {todo.text}
+        </span>
+      )}
+
+      <button
+        onClick={editing ? saveEdit : () => setEditing(true)}
+        aria-label={editing ? 'Save task text' : 'Edit task text'}
         style={{
-          flex: 1,
-          fontSize: 13.5,
-          color: todo.done ? '#475569' : '#cbd5e1',
-          textDecoration: todo.done ? 'line-through' : 'none',
-          lineHeight: 1.5,
+          background: 'none',
+          border: 'none',
+          color: '#475569',
+          cursor: 'pointer',
+          fontSize: 12,
+          padding: '0 2px',
+          lineHeight: 1,
         }}
       >
-        {todo.text}
-      </span>
-
+        {editing ? '✓' : '✎'}
+      </button>
       <button
         onClick={onDelete}
         aria-label="Delete task"

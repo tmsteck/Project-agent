@@ -46,8 +46,8 @@ export default function AgentChat({ projects, onProjectsUpdate, globalMode }) {
 
       const result = await callAgent(history, projects)
 
-      if (result.mutations?.length) {
-        const updated = applyMutations(projects, result.mutations)
+      if (result.mutations?.length || result.projectsToAdd?.length) {
+        const updated = applyMutations(projects, result)
         onProjectsUpdate(updated)
       }
       if (result.quagmireFlags?.length) {

@@ -1,3 +1,5 @@
+import { DEFAULT_PROJECT_SUMMARY, STATUS_META, makeId } from './utils.js'
+
 const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
 const ENABLE_INSECURE_BROWSER_AGENT = import.meta.env.VITE_ENABLE_INSECURE_BROWSER_AGENT === 'true'
 
@@ -14,12 +16,23 @@ Be direct and honest like a good labmate. Don't sugarcoat when something sounds 
 IMPORTANT: Always respond with a JSON object in this exact shape:
 {
   "message": "Your conversational reply to the student (markdown ok)",
+  "projectsToAdd": [
+    {
+      "name": "New project title",
+      "summary": "Short project summary",
+      "status": "active|stalled|blocked|done (optional, defaults to active)",
+      "todos": ["task 1", "task 2"],
+      "logEntry": "brief creation note (optional)"
+    }
+  ],
   "mutations": [
     {
       "projectId": "p1",
+      "projectNameUpdate": "new project name or null",
       "summaryUpdate": "new summary text or null",
       "statusUpdate": "active|stalled|blocked|done or null",
       "todosToAdd": [{"text": "..."}],
+      "todosToEdit": [{"id": "todo-id-1", "text": "updated text"}],
       "todosToComplete": ["todo-id-1"],
       "todosToDelete": ["todo-id-2"],
       "logEntry": "brief log note"
@@ -30,7 +43,9 @@ IMPORTANT: Always respond with a JSON object in this exact shape:
   ],
   "priorityAdvice": "Only include when asked for prioritization"
 }
-Only include keys that are relevant. mutations can be an empty array if no changes needed.`
+Only include keys that are relevant. projectsToAdd and mutations can be empty arrays if no changes are needed.
+Use projectsToAdd when the user describes a brand-new project or asks you to create entries from a semi-formal description.
+Use todosToEdit and projectNameUpdate when the user asks to directly rewrite existing text.`
 
 export async function callAgent(conversationHistory, projects) {
   if (!ENABLE_INSECURE_BROWSER_AGENT) {
@@ -77,23 +92,70 @@ export async function callAgent(conversationHistory, projects) {
   }
 }
 
-export function applyMutations(projects, mutations) {
-  if (!mutations?.length) return projects
+export function applyMutations(projects, resultOrMutations) {
+  const mutations = Array.isArray(resultOrMutations)
+    ? resultOrMutations
+    : (resultOrMutations?.mutations ?? [])
+  const projectsToAdd = Array.isArray(resultOrMutations)
+    ? []
+    : (resultOrMutations?.projectsToAdd ?? [])
+
+  if (!mutations?.length && !projectsToAdd?.length) return projects
   const now = new Date().toISOString()
-  return projects.map(p => {
+
+  const statusSet = new Set(Object.keys(STATUS_META))
+  const createdProjects = projectsToAdd
+    .filter(x => x?.name?.trim())
+    .map(x => {
+      const name = x.name.trim()
+      const summary = x.summary?.trim() || DEFAULT_PROJECT_SUMMARY
+      const status = statusSet.has(x.status) ? x.status : 'active'
+      const todos = (x.todos ?? [])
+        .map(t => typeof t === 'string' ? t : t?.text)
+        .filter(Boolean)
+        .map(text => ({
+          id: makeId('t'),
+          text: text.trim(),
+          done: false,
+          added: now,
+        }))
+      const log = [{ ts: now, text: x.logEntry?.trim() || 'Project created by agent.' }]
+
+      return {
+        id: makeId('p'),
+        name,
+        status,
+        summary,
+        todos,
+        log,
+        created: now,
+        lastCheckin: now,
+      }
+    })
+
+  const updatedProjects = projects.map(p => {
     const m = mutations.find(x => x.projectId === p.id)
     if (!m) return p
     let updated = { ...p }
+    if (m.projectNameUpdate) updated.name = m.projectNameUpdate
     if (m.summaryUpdate) updated.summary = m.summaryUpdate
     if (m.statusUpdate) updated.status = m.statusUpdate
     if (m.todosToAdd?.length) {
       const newTodos = m.todosToAdd.map(t => ({
-        id: `t${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        id: makeId('t'),
         text: t.text,
         done: false,
         added: now,
       }))
       updated.todos = [...updated.todos, ...newTodos]
+    }
+    if (m.todosToEdit?.length) {
+      const edits = new Map(
+        m.todosToEdit
+          .filter(t => t?.id && t?.text?.trim())
+          .map(t => [t.id, t.text.trim()])
+      )
+      updated.todos = updated.todos.map(t => (edits.has(t.id) ? { ...t, text: edits.get(t.id) } : t))
     }
     if (m.todosToComplete?.length) {
       updated.todos = updated.todos.map(t =>
@@ -109,4 +171,6 @@ export function applyMutations(projects, mutations) {
     updated.lastCheckin = now
     return updated
   })
+
+  return [...updatedProjects, ...createdProjects]
 }

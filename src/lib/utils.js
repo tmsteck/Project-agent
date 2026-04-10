@@ -1,4 +1,14 @@
 export const now = () => new Date().toISOString()
+export const DEFAULT_PROJECT_SUMMARY = 'New project.'
+let idCounter = 0
+
+export function makeId(prefix) {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `${prefix}${crypto.randomUUID()}`
+  }
+  idCounter = (idCounter + 1) % 1_000_000
+  return `${prefix}${Date.now()}-${idCounter}-${Math.random().toString(36).slice(2, 10)}`
+}
 
 export function fmtDate(iso) {
   if (!iso) return ''
