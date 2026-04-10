@@ -5,6 +5,10 @@ import { now, fmtDate, STATUS_META } from '../lib/utils.js'
 
 export default function ProjectPanel({ project, onUpdate }) {
   const [newTodo, setNewTodo] = useState('')
+  const [newLogEntry, setNewLogEntry] = useState('')
+  const [editingProjectText, setEditingProjectText] = useState(false)
+  const [draftName, setDraftName] = useState(project.name)
+  const [draftSummary, setDraftSummary] = useState(project.summary)
 
   const addTodo = () => {
     if (!newTodo.trim()) return
@@ -19,10 +23,40 @@ export default function ProjectPanel({ project, onUpdate }) {
   const deleteTodo = (id) =>
     onUpdate({ ...project, todos: project.todos.filter(t => t.id !== id) })
 
+  const editTodoText = (id, text) =>
+    onUpdate({
+      ...project,
+      todos: project.todos.map(t => t.id === id ? { ...t, text } : t),
+    })
+
   const cycleStatus = () => {
     const order = Object.keys(STATUS_META)
     const next = order[(order.indexOf(project.status) + 1) % order.length]
     onUpdate({ ...project, status: next })
+  }
+
+  const saveProjectText = () => {
+    const name = draftName.trim()
+    const summary = draftSummary.trim()
+    if (!name) return
+    onUpdate({ ...project, name, summary: summary || 'New project.' })
+    setEditingProjectText(false)
+  }
+
+  const cancelProjectText = () => {
+    setDraftName(project.name)
+    setDraftSummary(project.summary)
+    setEditingProjectText(false)
+  }
+
+  const addLogEntry = () => {
+    const text = newLogEntry.trim()
+    if (!text) return
+    onUpdate({
+      ...project,
+      log: [...(project.log ?? []), { ts: now(), text }],
+    })
+    setNewLogEntry('')
   }
 
   const open = project.todos.filter(t => !t.done)
@@ -32,12 +66,33 @@ export default function ProjectPanel({ project, onUpdate }) {
     <div className="fade-up project-panel">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 16 }}>
-        <h2 style={{
-          margin: 0, fontSize: 22, fontWeight: 700, color: '#f1f5f9',
-          fontFamily: "'Playfair Display', serif", lineHeight: 1.3,
-        }}>
-          {project.name}
-        </h2>
+        {editingProjectText ? (
+          <input
+            value={draftName}
+            onChange={e => setDraftName(e.target.value)}
+            style={{
+              margin: 0,
+              width: '100%',
+              background: '#0f172a',
+              border: '1px solid #334155',
+              borderRadius: 6,
+              color: '#f1f5f9',
+              fontSize: 18,
+              fontWeight: 700,
+              fontFamily: "'Playfair Display', serif",
+              lineHeight: 1.3,
+              padding: '8px 10px',
+              outline: 'none',
+            }}
+          />
+        ) : (
+          <h2 style={{
+            margin: 0, fontSize: 22, fontWeight: 700, color: '#f1f5f9',
+            fontFamily: "'Playfair Display', serif", lineHeight: 1.3,
+          }}>
+            {project.name}
+          </h2>
+        )}
         <StatusBadge status={project.status} onClick={cycleStatus} />
       </div>
 
@@ -49,9 +104,64 @@ export default function ProjectPanel({ project, onUpdate }) {
         <div style={{ fontSize: 10, letterSpacing: '0.12em', color: '#64748b', fontWeight: 700, marginBottom: 6, textTransform: 'uppercase' }}>
           Project Summary
         </div>
-        <p style={{ margin: 0, fontSize: 13.5, color: '#94a3b8', lineHeight: 1.65 }}>
-          {project.summary}
-        </p>
+        {editingProjectText ? (
+          <textarea
+            value={draftSummary}
+            onChange={e => setDraftSummary(e.target.value)}
+            rows={4}
+            style={{
+              width: '100%',
+              margin: 0,
+              background: '#0b1220',
+              border: '1px solid #334155',
+              borderRadius: 6,
+              color: '#94a3b8',
+              fontSize: 13.5,
+              lineHeight: 1.65,
+              padding: '8px 10px',
+              resize: 'vertical',
+              outline: 'none',
+            }}
+          />
+        ) : (
+          <p style={{ margin: 0, fontSize: 13.5, color: '#94a3b8', lineHeight: 1.65 }}>
+            {project.summary}
+          </p>
+        )}
+        <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+          {editingProjectText ? (
+            <>
+              <button
+                onClick={saveProjectText}
+                style={{
+                  background: '#3b82f6', border: 'none', borderRadius: 5,
+                  color: '#fff', fontSize: 12, padding: '6px 10px', cursor: 'pointer',
+                }}
+              >
+                Save text
+              </button>
+              <button
+                onClick={cancelProjectText}
+                style={{
+                  background: '#0f172a', border: '1px solid #334155', borderRadius: 5,
+                  color: '#64748b', fontSize: 12, padding: '6px 10px', cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setEditingProjectText(true)}
+              style={{
+                background: '#0f172a', border: '1px solid #334155', borderRadius: 5,
+                color: '#64748b', fontSize: 12, padding: '6px 10px', cursor: 'pointer',
+              }}
+            >
+              Edit text
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Open todos */}
@@ -65,7 +175,13 @@ export default function ProjectPanel({ project, onUpdate }) {
           </p>
         )}
         {open.map(t => (
-          <TodoItem key={t.id} todo={t} onToggle={() => toggleTodo(t.id)} onDelete={() => deleteTodo(t.id)} />
+          <TodoItem
+            key={t.id}
+            todo={t}
+            onToggle={() => toggleTodo(t.id)}
+            onDelete={() => deleteTodo(t.id)}
+            onEdit={text => editTodoText(t.id, text)}
+          />
         ))}
       </div>
 
@@ -99,12 +215,39 @@ export default function ProjectPanel({ project, onUpdate }) {
             Completed ({done.length})
           </div>
           {done.map(t => (
-            <TodoItem key={t.id} todo={t} onToggle={() => toggleTodo(t.id)} onDelete={() => deleteTodo(t.id)} />
+            <TodoItem
+              key={t.id}
+              todo={t}
+              onToggle={() => toggleTodo(t.id)}
+              onDelete={() => deleteTodo(t.id)}
+              onEdit={text => editTodoText(t.id, text)}
+            />
           ))}
         </div>
       )}
 
       {/* Activity log */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+        <input
+          value={newLogEntry}
+          onChange={e => setNewLogEntry(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && addLogEntry()}
+          placeholder="Add activity note..."
+          style={{
+            flex: 1, background: '#0f172a', border: '1px solid #334155',
+            borderRadius: 6, color: '#cbd5e1', fontSize: 13, padding: '8px 12px', outline: 'none',
+          }}
+        />
+        <button
+          onClick={addLogEntry}
+          style={{
+            background: '#0f172a', border: '1px solid #334155', borderRadius: 6,
+            color: '#64748b', fontSize: 12, fontWeight: 600, padding: '8px 12px', cursor: 'pointer',
+          }}
+        >
+          + Note
+        </button>
+      </div>
       {project.log?.length > 0 && (
         <div>
           <div style={{ fontSize: 10, letterSpacing: '0.12em', color: '#334155', fontWeight: 700, marginBottom: 10, textTransform: 'uppercase' }}>
