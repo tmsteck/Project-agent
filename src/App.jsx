@@ -11,6 +11,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null)
   const [view, setView] = useState('project')       // 'project' | 'agent' | 'global-agent'
   const [saveError, setSaveError] = useState(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // ── Boot: load from Supabase ──────────────────────────────────────────────
   useEffect(() => {
@@ -109,19 +110,40 @@ export default function App() {
 
   return (
     <div style={{ height: '100vh', display: 'flex', background: '#080f1a', color: '#e2e8f0', overflow: 'hidden' }}>
+      {/* Mobile overlay behind sidebar drawer */}
+      <div
+        className={`sidebar-overlay${sidebarOpen ? ' open' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
       <Sidebar
         projects={projects}
         selectedId={selectedId}
         view={view}
-        onSelect={id => { setSelectedId(id); setView('project') }}
-        onViewChange={setView}
+        onSelect={id => { setSelectedId(id); setView('project'); setSidebarOpen(false) }}
+        onViewChange={v => { setView(v); setSidebarOpen(false) }}
         onAdd={handleAdd}
         onDelete={handleDelete}
-        onGlobalAgent={() => { setView('global-agent'); setSelectedId(null) }}
+        onGlobalAgent={() => { setView('global-agent'); setSelectedId(null); setSidebarOpen(false) }}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       {/* Main content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+        {/* Mobile top bar */}
+        <div className="mobile-topbar">
+          <button
+            className="hamburger-btn"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open menu"
+          >
+            ☰
+          </button>
+          <span style={{ fontSize: 11, letterSpacing: '0.15em', color: '#3b82f6', fontWeight: 700, textTransform: 'uppercase' }}>
+            ⚛ Research OS
+          </span>
+        </div>
         {/* Save error banner */}
         {saveError && (
           <div style={{
