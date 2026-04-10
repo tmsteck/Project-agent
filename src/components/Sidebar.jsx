@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import StatusBadge from './StatusBadge.jsx'
-import { now, STATUS_META } from '../lib/utils.js'
+import { DEFAULT_PROJECT_SUMMARY, STATUS_META } from '../lib/utils.js'
 
 export default function Sidebar({ projects, selectedId, view, onSelect, onViewChange, onAdd, onDelete, onGlobalAgent, isOpen, onClose }) {
   const [showForm, setShowForm] = useState(false)
@@ -9,7 +9,7 @@ export default function Sidebar({ projects, selectedId, view, onSelect, onViewCh
 
   const handleAdd = () => {
     if (!name.trim()) return
-    onAdd({ name: name.trim(), summary: summary.trim() || 'New project.' })
+    onAdd({ name: name.trim(), summary: summary.trim() || DEFAULT_PROJECT_SUMMARY })
     setName(''); setSummary(''); setShowForm(false)
   }
 

@@ -11,8 +11,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onEdit }) {
   const saveEdit = () => {
     const text = draft.trim()
     if (!text || text === todo.text) {
-      setEditing(false)
-      return
+      return setEditing(false)
     }
     onEdit?.(text)
     setEditing(false)

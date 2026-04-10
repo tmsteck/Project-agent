@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import StatusBadge from './StatusBadge.jsx'
 import TodoItem from './TodoItem.jsx'
-import { now, fmtDate, STATUS_META } from '../lib/utils.js'
+import { now, fmtDate, STATUS_META, DEFAULT_PROJECT_SUMMARY, makeId } from '../lib/utils.js'
 
 export default function ProjectPanel({ project, onUpdate }) {
   const [newTodo, setNewTodo] = useState('')
@@ -18,7 +18,7 @@ export default function ProjectPanel({ project, onUpdate }) {
 
   const addTodo = () => {
     if (!newTodo.trim()) return
-    const todo = { id: `t${Date.now()}`, text: newTodo.trim(), done: false, added: now() }
+    const todo = { id: makeId('t'), text: newTodo.trim(), done: false, added: now() }
     onUpdate({ ...project, todos: [...project.todos, todo] })
     setNewTodo('')
   }
@@ -45,7 +45,7 @@ export default function ProjectPanel({ project, onUpdate }) {
     const name = draftName.trim()
     const summary = draftSummary.trim()
     if (!name) return
-    onUpdate({ ...project, name, summary: summary || 'New project.' })
+    onUpdate({ ...project, name, summary: summary || DEFAULT_PROJECT_SUMMARY })
     setEditingProjectText(false)
   }
 
@@ -237,7 +237,9 @@ export default function ProjectPanel({ project, onUpdate }) {
         <input
           value={newLogEntry}
           onChange={e => setNewLogEntry(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && addLogEntry()}
+          onKeyDown={e => {
+            if (e.key === 'Enter') addLogEntry()
+          }}
           placeholder="Add activity note..."
           style={{
             flex: 1, background: '#0f172a', border: '1px solid #334155',

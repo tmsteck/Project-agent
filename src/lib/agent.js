@@ -1,3 +1,5 @@
+import { DEFAULT_PROJECT_SUMMARY, makeId } from './utils.js'
+
 const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
 const ENABLE_INSECURE_BROWSER_AGENT = import.meta.env.VITE_ENABLE_INSECURE_BROWSER_AGENT === 'true'
 
@@ -106,13 +108,13 @@ export function applyMutations(projects, resultOrMutations) {
     .filter(x => x?.name?.trim())
     .map(x => {
       const name = x.name.trim()
-      const summary = x.summary?.trim() || 'New project.'
+      const summary = x.summary?.trim() || DEFAULT_PROJECT_SUMMARY
       const status = statusSet.has(x.status) ? x.status : 'active'
       const todos = (x.todos ?? [])
         .map(t => typeof t === 'string' ? t : t?.text)
         .filter(Boolean)
         .map(text => ({
-          id: `t${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          id: makeId('t'),
           text: text.trim(),
           done: false,
           added: now,
@@ -120,7 +122,7 @@ export function applyMutations(projects, resultOrMutations) {
       const log = [{ ts: now, text: x.logEntry?.trim() || 'Project created by agent.' }]
 
       return {
-        id: `p${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        id: makeId('p'),
         name,
         status,
         summary,
@@ -140,7 +142,7 @@ export function applyMutations(projects, resultOrMutations) {
     if (m.statusUpdate) updated.status = m.statusUpdate
     if (m.todosToAdd?.length) {
       const newTodos = m.todosToAdd.map(t => ({
-        id: `t${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        id: makeId('t'),
         text: t.text,
         done: false,
         added: now,

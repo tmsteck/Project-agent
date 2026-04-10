@@ -4,7 +4,7 @@ import ProjectPanel from './components/ProjectPanel.jsx'
 import AgentChat from './components/AgentChat.jsx'
 import StatusBadge from './components/StatusBadge.jsx'
 import { loadProjects, saveProjects } from './lib/supabase.js'
-import { now, makeSampleProjects } from './lib/utils.js'
+import { now, makeId, makeSampleProjects } from './lib/utils.js'
 
 export default function App() {
   const [projects, setProjects] = useState(null)   // null = loading
@@ -59,7 +59,7 @@ export default function App() {
   // ── Add project ───────────────────────────────────────────────────────────
   const handleAdd = useCallback(({ name, summary }) => {
     const p = {
-      id: `p${Date.now()}`,
+      id: makeId('p'),
       name,
       status: 'active',
       summary,
