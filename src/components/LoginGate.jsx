@@ -53,9 +53,9 @@ export default function LoginGate({ children }) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-          <span style={{ fontSize: 20 }}>⚛</span>
+          <span style={{ fontSize: 20 }}>📟✏️</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', fontFamily: "'Playfair Display', serif" }}>
-            Research OS
+            Research Tracker
           </span>
         </div>
 

@@ -26,7 +26,7 @@ export default function Sidebar({ projects, selectedId, view, onSelect, onViewCh
       <div style={{ padding: '20px 16px 14px', borderBottom: '1px solid #1e293b', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#3b82f6', fontWeight: 700, textTransform: 'uppercase', marginBottom: 2 }}>
-            ⚛ Research OS
+            Research Tracker
           </div>
           <div style={{ fontSize: 10, color: '#334155' }}>PhD Project Tracker</div>
         </div>
