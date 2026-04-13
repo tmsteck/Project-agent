@@ -101,7 +101,7 @@ export default function App() {
           <span className="dot-2" style={{ width: 8, height: 8, borderRadius: '50%', background: '#334155', display: 'inline-block' }} />
           <span className="dot-3" style={{ width: 8, height: 8, borderRadius: '50%', background: '#334155', display: 'inline-block' }} />
         </div>
-        Loading Research OS…
+        Loading Research Tracker…
       </div>
     )
   }
@@ -141,7 +141,7 @@ export default function App() {
             ☰
           </button>
           <span style={{ fontSize: 11, letterSpacing: '0.15em', color: '#3b82f6', fontWeight: 700, textTransform: 'uppercase' }}>
-            ⚛ Research OS
+            Research Tracker
           </span>
         </div>
         {/* Save error banner */}
